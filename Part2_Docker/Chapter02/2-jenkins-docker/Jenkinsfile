@@ -1,20 +1,23 @@
 def mainDir="Chapter02/2-jenkins-docker"
 def ecrLoginHelper="docker-credential-ecr-login"
-def region="<AWS Region>"
+def region="<AWS 지역>"
 def ecrUrl="<AWS ECR URL>"
-def repository="<Image Repository Name>"
-def deployHost="<Deploy VM Private IP>"
+def repository="<이미지 저장소 이름>"
+def deployHost="<배포할 VM의 개인 IP>"
 
 pipeline {
     agent any
 
     stages {
-        stage('Pull Codes from Github'){
+        // Stage 1: Github에서 코드 가져오기
+        stage('Github에서 코드 가져오기'){
             steps{
                 checkout scm
             }
         }
-        stage('Build Codes by Gradle') {
+        
+        // Stage 2: Gradle로 코드 빌드하기
+        stage('Gradle로 코드 빌드하기') {
             steps {
                 sh """
                 cd ${mainDir}
@@ -22,22 +25,31 @@ pipeline {
                 """
             }
         }
-        stage('Build Docker Image by Jib & Push to AWS ECR Repository') {
+        
+        // Stage 3: Jib를 사용하여 Docker 이미지 빌드 및 AWS ECR 저장소에 푸시하기
+        stage('Jib를 사용하여 Docker 이미지 빌드 및 AWS ECR 저장소에 푸시하기') {
             steps {
+                // AWS Credentials 설정
                 withAWS(region:"${region}", credentials:"aws-key") {
+                    // AWS ECR에 로그인
                     ecrLogin()
                     sh """
+                        // AWS ECR Credential Helper 다운로드
                         curl -O https://amazon-ecr-credential-helper-releases.s3.us-east-2.amazonaws.com/0.4.0/linux-amd64/${ecrLoginHelper}
                         chmod +x ${ecrLoginHelper}
                         mv ${ecrLoginHelper} /usr/local/bin/
                         cd ${mainDir}
+                        // Jib를 사용하여 Docker 이미지 빌드 및 AWS ECR 저장소에 푸시
                         ./gradlew jib -Djib.to.image=${ecrUrl}/${repository}:${currentBuild.number} -Djib.console='plain'
                     """
                 }
             }
         }
-        stage('Deploy to AWS EC2 VM'){
+        
+        // Stage 4: AWS EC2 VM에 배포하기
+        stage('AWS EC2 VM에 배포하기'){
             steps{
+                // 배포할 VM에 SSH 연결하기 위해 SSH 키 설정
                 sshagent(credentials : ["deploy-key"]) {
                     sh "ssh -o StrictHostKeyChecking=no ubuntu@${deployHost} \
                      'aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrUrl}/${repository}; \

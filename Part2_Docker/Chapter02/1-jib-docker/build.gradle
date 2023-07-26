@@ -1,59 +1,114 @@
 plugins {
-  id 'java'
-  id 'org.springframework.boot' version '2.7.1'
-  id 'io.spring.dependency-management' version '1.0.12.RELEASE'
-  id 'com.google.cloud.tools.jib' version '3.3.1'
+    // Java 플러그인을 적용하여 Java 관련 작업을 활성화합니다.
+    id 'java'
+    
+    // Spring Boot 플러그인을 지정된 버전으로 적용합니다.
+    id 'org.springframework.boot' version '2.7.1'
+    
+    // Spring Dependency Management 플러그인을 지정된 버전으로 적용합니다.
+    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+    
+    // Google Jib 플러그인을 적용하여 애플리케이션을 컨테이너화합니다.
+    id 'com.google.cloud.tools.jib' version '3.3.1'
 }
 
 dependencies {
+    // Spring Boot Starter Thymeleaf를 프로젝트의 의존성에 추가합니다.
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
-	implementation 'org.springframework.boot:spring-boot-starter-web:2.7.1'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools:2.7.1'
+    
+    // Spring Boot Starter Web을 프로젝트의 의존성에 추가합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.1'
+    
+    // Spring Boot DevTools를 프로젝트의 개발용 의존성에 추가합니다.
+    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.7.1'
 }
 
 repositories {
-  mavenCentral()
+    // 의존성을 해결하기 위해 Maven Central 리포지토리를 지정합니다.
+    mavenCentral()
 }
 
-version = '0.0.1-SNAPSHOT'
-description = 'test-docker-spring-boot'
-group = 'com.test'
+// 프로젝트 메타데이터
+version = '0.0.1-SNAPSHOT'       // 프로젝트 버전입니다.
+description = 'test-docker-spring-boot'  // 프로젝트 설명입니다.
+group = 'com.test'             // 그룹 ID입니다.
 
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_11  // Java 소스 호환성을 Java 11로 설정합니다.
 
 jar {
-	enabled = false
+    enabled = false  // JAR 태스크 생성을 비활성화합니다.
 }
 
 tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'  // Java 컴파일에 대한 문자 인코딩을 설정합니다.
 }
 
 jib {
-  from {
-    image = 'adoptopenjdk/openjdk11:alpine-jre'
-  }
-  to {
-    image = '<Docker Hub Repository URL>'
-    tags = ['<TAG Name>']
-  }
-  container {
-    entrypoint = ['java', '-Dspring.profiles.active=test', '-jar', 'test-docker-spring-boot-0.0.1-SNAPSHOT.jar']
-
-    jvmFlags = ['-Xms512m', '-Xmx512m', '-Xdebug', '-XshowSettings:vm', '-XX:+UnlockExperimentalVMOptions', '-XX:+UseContainerSupport']
-		ports = ['8080']
-
-    environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
-    labels = [version:project.version, name:project.name, group:project.group]
-
-    creationTime = 'USE_CURRENT_TIMESTAMP'
-    format = 'Docker'
-  }
-  extraDirectories {
-    paths {
-      path {
-        from = file('build/libs')
-      }
+    // 컨테이너의 기본 이미지를 지정합니다.
+    from {
+        image = 'adoptopenjdk/openjdk11:alpine-jre'
     }
-  }
+    // 컨테이너의 대상 이미지를 지정합니다. ('<Docker Hub Repository URL>'과 '<TAG Name>'을 실제 값으로 대체하세요.)
+    to {
+        image = '<Docker Hub Repository URL>'
+        tags = ['<TAG Name>']
+    }
+    container {
+        // 컨테이너의 진입점 명령을 지정합니다.
+        entrypoint = ['java', '-Dspring.profiles.active=test', '-jar', 'test-docker-spring-boot-0.0.1-SNAPSHOT.jar']
+        
+        // 컨테이너용 JVM 옵션을 구성합니다.
+        jvmFlags = ['-Xms512m', '-Xmx512m', '-Xdebug', '-XshowSettings:vm', '-XX:+UnlockExperimentalVMOptions', '-XX:+UseContainerSupport']
+        
+        // 컨테이너에게 노출시킬 포트를 설정합니다.
+        ports = ['8080']
+        
+        // 컨테이너용 환경 변수를 설정합니다.
+        environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
+        
+        // 컨테이너 이미지에 라벨을 추가합니다.
+        labels = [version: project.version, name: project.name, group: project.group]
+        
+        // 컨테이너의 생성 시간을 현재 타임스탬프로 설정합니다.
+        creationTime = 'USE_CURRENT_TIMESTAMP'
+        
+        // 컨테이너 이미지 포맷을 'Docker'로 지정합니다.
+        format = 'Docker'
+    }
+    // 컨테이너 이미지에 추가할 추가 디렉토리를 지정합니다.
+    extraDirectories {
+        paths {
+            path {
+                // build/libs 디렉토리를 컨테이너 이미지로 복사합니다.
+                from = file('build/libs')
+            }
+        }
+    }
 }
+
+
+
+// 물론, 컨테이너용 JVM(Java Virtual Machine) 옵션들에 대해 설명드리겠습니다. 이러한 옵션들은 컨테이너 내에서 Java 애플리케이션을 실행할 때 JVM의 동작을 조정하고 최적화하는데 사용됩니다. 주로 메모리 관리와 디버깅을 위해 사용됩니다.
+
+// -Xms<size>: 초기 힙 크기 설정
+
+// JVM이 시작될 때 힙 영역에 할당되는 초기 크기를 지정합니다.
+// <size>는 바이트(Byte) 단위로 메모리 크기를 지정합니다. 예를 들어, -Xms512m는 초기 힙 크기를 512MB로 설정합니다.
+// -Xmx<size>: 최대 힙 크기 설정
+
+// JVM이 할당 받을 수 있는 최대 힙 영역의 크기를 지정합니다.
+// <size>는 바이트(Byte) 단위로 메모리 크기를 지정합니다. 예를 들어, -Xmx512m는 최대 힙 크기를 512MB로 설정합니다.
+// -Xdebug: JVM 디버그 모드 활성화
+
+// JVM 디버깅을 위해 디버그 포트를 열고 디버그 모드를 활성화합니다.
+// 이 옵션을 사용하면 외부 디버거(예: Eclipse, IntelliJ 등)에서 JVM 프로세스에 연결하여 애플리케이션의 디버깅이 가능해집니다.
+// -XshowSettings:vm: JVM 설정 정보 출력
+
+// JVM의 설정 정보를 출력합니다. 이 정보에는 버전, 힙 크기, 가용한 프로세서 수 등이 포함됩니다.
+// -XX:+UnlockExperimentalVMOptions: 실험적인 JVM 옵션 활성화
+
+// JVM에서 실험적인 기능을 활성화할 수 있도록 합니다. 이러한 옵션은 향후 버전에서 변경될 수 있으므로 주의해서 사용해야 합니다.
+// -XX:+UseContainerSupport: 컨테이너 환경에서 JVM의 기능 지원
+
+// 컨테이너 환경에서 JVM의 기능을 지원하도록 합니다. 이는 컨테이너에서 사용 가능한 메모리와 CPU 리소스를 더 잘 인식하도록 JVM에 지시합니다.
+// 컨테이너 환경에서 JVM을 실행할 때는 이러한 옵션들을 사용하여 메모리 할당과 디버깅 설정 등을 조정하여 효율적인 애플리케이션 운영을 도모할 수 있습니다. 하지만 이러한 옵션들은 애플리케이션의 특성과 환경에 따라 적절히 선택되어야 하며, 너무 과도하게 설정하면 다른 컨테이너와 자원을 공유하는 환경에서 문제가 발생할 수 있습니다. 따라서 신중하게 설정해야 합니다.
